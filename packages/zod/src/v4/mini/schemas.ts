@@ -474,6 +474,21 @@ export function e164(params?: string | core.$ZodE164Params): ZodMiniE164 {
   return core._e164(ZodMiniE164, params);
 }
 
+// ZodMiniCreditCard
+export interface ZodMiniCreditCard extends _ZodMiniString<core.$ZodCreditCardInternals> {}
+export const ZodMiniCreditCard: core.$constructor<ZodMiniCreditCard> = /*@__PURE__*/ core.$constructor(
+  "ZodMiniCreditCard",
+  (inst, def) => {
+    core.$ZodCreditCard.init(inst, def);
+    ZodMiniStringFormat.init(inst, def);
+  }
+);
+
+// @__NO_SIDE_EFFECTS__
+export function creditCard(params?: string | core.$ZodCreditCardParams): ZodMiniCreditCard {
+  return core._creditCard(ZodMiniCreditCard, params);
+}
+
 // ZodMiniJWT
 export interface ZodMiniJWT extends _ZodMiniString<core.$ZodJWTInternals> {
   // _zod: core.$ZodJWTInternals;
@@ -486,22 +501,6 @@ export const ZodMiniJWT: core.$constructor<ZodMiniJWT> = /*@__PURE__*/ core.$con
 // @__NO_SIDE_EFFECTS__
 export function jwt(params?: string | core.$ZodJWTParams): ZodMiniJWT {
   return core._jwt(ZodMiniJWT, params);
-}
-
-// ZodMiniCreditCard
-export interface ZodMiniCreditCard extends ZodMiniStringFormat<"credit_card"> {
-  _zod: core.$ZodCreditCardInternals;
-}
-export const ZodMiniCreditCard: core.$constructor<ZodMiniCreditCard> = /*@__PURE__*/ core.$constructor(
-  "ZodMiniCreditCard",
-  (inst, def) => {
-    core.$ZodCreditCard.init(inst, def);
-    ZodMiniStringFormat.init(inst, def);
-  }
-);
-
-export function creditCard(params?: string | core.$ZodCreditCardParams): ZodMiniCreditCard {
-  return core._creditCard(ZodMiniCreditCard, params);
 }
 
 // ZodMiniCustomStringFormat

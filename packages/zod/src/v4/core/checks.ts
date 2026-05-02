@@ -772,14 +772,14 @@ export type $ZodStringFormats =
   | "base64url"
   | "json_string"
   | "e164"
+  | "credit_card"
   | "lowercase"
   | "uppercase"
   | "regex"
   | "jwt"
   | "starts_with"
   | "ends_with"
-  | "includes"
-  | "credit_card";
+  | "includes";
 export interface $ZodCheckStringFormatDef<Format extends string = string> extends $ZodCheckDef {
   check: "string_format";
   format: Format;

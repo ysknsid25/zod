@@ -137,7 +137,7 @@ export interface $ZodIssueCustom extends $ZodIssueBase {
 ////////////////////////////////////////////
 
 export interface $ZodIssueStringCommonFormats extends $ZodIssueInvalidStringFormat {
-  format: Exclude<$ZodStringFormats, "regex" | "jwt" | "starts_with" | "ends_with" | "includes" | "credit_card">;
+  format: Exclude<$ZodStringFormats, "regex" | "jwt" | "starts_with" | "ends_with" | "includes">;
 }
 
 export interface $ZodIssueStringInvalidRegex extends $ZodIssueInvalidStringFormat {

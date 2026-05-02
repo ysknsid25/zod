@@ -510,6 +510,8 @@ export interface ZodString extends _ZodString<core.$ZodStringInternals<string>> 
   cidrv6(params?: string | core.$ZodCheckCIDRv6Params): this;
   /** @deprecated Use `z.e164()` instead. */
   e164(params?: string | core.$ZodCheckE164Params): this;
+  /** @deprecated Use `z.creditCard()` instead. */
+  creditCard(params?: string | core.$ZodCheckCreditCardParams): this;
 
   // ISO 8601 checks
   /** @deprecated Use `z.iso.datetime()` instead. */
@@ -528,8 +530,6 @@ export interface ZodString extends _ZodString<core.$ZodStringInternals<string>> 
   ): this;
   /** @deprecated Use `z.iso.duration()` instead. */
   duration(params?: string | core.$ZodCheckISODurationParams): this;
-  /** @deprecated Use `z.creditCard()` instead. */
-  creditCard(params?: string | core.$ZodCheckCreditCardParams): this;
 }
 
 export const ZodString: core.$constructor<ZodString> = /*@__PURE__*/ core.$constructor("ZodString", (inst, def) => {
@@ -903,6 +903,22 @@ export function e164(params?: string | core.$ZodE164Params): ZodE164 {
   return core._e164(ZodE164, params);
 }
 
+// ZodCreditCard
+export interface ZodCreditCard extends ZodStringFormat<"credit_card"> {
+  _zod: core.$ZodCreditCardInternals;
+}
+export const ZodCreditCard: core.$constructor<ZodCreditCard> = /*@__PURE__*/ core.$constructor(
+  "ZodCreditCard",
+  (inst, def) => {
+    core.$ZodCreditCard.init(inst, def);
+    ZodStringFormat.init(inst, def);
+  }
+);
+
+export function creditCard(params?: string | core.$ZodCreditCardParams): ZodCreditCard {
+  return core._creditCard(ZodCreditCard, params);
+}
+
 // ZodJWT
 export interface ZodJWT extends ZodStringFormat<"jwt"> {
   _zod: core.$ZodJWTInternals;
@@ -915,21 +931,6 @@ export const ZodJWT: core.$constructor<ZodJWT> = /*@__PURE__*/ core.$constructor
 
 export function jwt(params?: string | core.$ZodJWTParams): ZodJWT {
   return core._jwt(ZodJWT, params);
-}
-
-// ZodCreditCard
-export interface ZodCreditCard extends ZodStringFormat<"credit_card"> {
-  _zod: core.$ZodCreditCardInternals;
-}
-export const ZodCreditCard: core.$constructor<ZodCreditCard> = /*@__PURE__*/ core.$constructor(
-  "ZodCreditCard",
-  (inst, def) => {
-    core.$ZodCreditCard.init(inst, def);
-    ZodStringFormat.init(inst, def);
-  }
-);
-export function creditCard(): ZodCreditCard {
-  return core._creditCard(ZodCreditCard);
 }
 
 // ZodCustomStringFormat

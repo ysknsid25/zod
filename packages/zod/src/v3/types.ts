@@ -552,12 +552,7 @@ export type ZodStringCheck =
   | { kind: "uuid"; message?: string | undefined }
   | { kind: "nanoid"; message?: string | undefined }
   | { kind: "cuid"; message?: string | undefined }
-  | {
-      kind: "includes";
-      value: string;
-      position?: number | undefined;
-      message?: string | undefined;
-    }
+  | { kind: "includes"; value: string; position?: number | undefined; message?: string | undefined }
   | { kind: "cuid2"; message?: string | undefined }
   | { kind: "ulid"; message?: string | undefined }
   | { kind: "startsWith"; value: string; message?: string | undefined }
@@ -585,16 +580,8 @@ export type ZodStringCheck =
       message?: string | undefined;
     }
   | { kind: "duration"; message?: string | undefined }
-  | {
-      kind: "ip";
-      version?: IpVersion | undefined;
-      message?: string | undefined;
-    }
-  | {
-      kind: "cidr";
-      version?: IpVersion | undefined;
-      message?: string | undefined;
-    }
+  | { kind: "ip"; version?: IpVersion | undefined; message?: string | undefined }
+  | { kind: "cidr"; version?: IpVersion | undefined; message?: string | undefined }
   | { kind: "base64"; message?: string | undefined }
   | { kind: "base64url"; message?: string | undefined }
   | { kind: "creditCard"; message?: string | undefined };
@@ -654,41 +641,6 @@ const base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}
 
 // https://base64.guru/standards/base64url
 const base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
-
-/**
- * Credit card regex.
- */
-const creditCardRegex = /^(?:\d{14,19}|\d{4}(?: \d{3,6}){2,4}|\d{4}(?:-\d{3,6}){2,4})$/u;
-
-/**
- * Sanitize regex.
- */
-const creditSanitizeRegex = /[- ]/gu;
-
-/**
- * Provider regex list.
- */
-const creditByProviderRegexList = [
-  // American Express
-  /^3[47]\d{13}$/u,
-  // Diners Club
-  /^3(?:0[0-5]|[68]\d)\d{11,13}$/u,
-  // Discover
-  /^6(?:011|5\d{2})\d{12,15}$/u,
-  // JCB
-  /^(?:2131|1800|35\d{3})\d{11}$/u,
-  // Mastercard
-  /^5[1-5]\d{2}|(?:222\d|22[3-9]\d|2[3-6]\d{2}|27[01]\d|2720)\d{12}$/u,
-  // UnionPay
-  /^(?:6[27]\d{14,17}|81\d{14,17})$/u,
-  // Visa
-  /^4\d{12}(?:\d{3,6})?$/u,
-];
-
-/**
- * Non-digit regex.
- */
-const nonDigitRegex = /\D/gu;
 
 // simple
 // const dateRegexSource = `\\d{4}-\\d{2}-\\d{2}`;
@@ -777,37 +729,38 @@ function isValidCidr(ip: string, version?: IpVersion) {
   return false;
 }
 
+// Adapted from valibot (https://github.com/fabian-hiller/valibot, MIT). v4 has the
+// equivalent in `src/v4/core/regexes.ts` + `src/v4/core/schemas.ts`; v3 keeps its
+// own copy because v3 is intentionally isolated from v4 internals.
+const creditCardRegex = /^(?:\d{13,19}|\d{4}(?: \d{3,6}){2,4}|\d{4}(?:-\d{3,6}){2,4})$/;
+const creditSanitizeRegex = /[- ]/g;
+const creditByProviderRegexList: ReadonlyArray<RegExp> = [
+  /^3[47]\d{13}$/, // American Express
+  /^3(?:0[0-5]|[68]\d)\d{11,13}$/, // Diners Club
+  /^6(?:011|5\d{2})\d{12,15}$/, // Discover
+  /^(?:2131|1800|35\d{3})\d{11}$/, // JCB
+  /^(?:5[1-5]\d{2}|222\d|22[3-9]\d|2[3-6]\d{2}|27[01]\d|2720)\d{12}$/, // Mastercard
+  /^(?:6[27]\d{14,17}|81\d{14,17})$/, // UnionPay
+  /^4\d{12}(?:\d{3,6})?$/, // Visa
+];
+
+function isLuhnAlgo(digits: string): boolean {
+  let length = digits.length;
+  let bit = 1;
+  let sum = 0;
+  while (length) {
+    const value = +digits[--length];
+    bit ^= 1;
+    sum += bit ? [0, 2, 4, 6, 8, 1, 3, 5, 7, 9][value] : value;
+  }
+  return sum % 10 === 0;
+}
+
 function isValidCreditCard(cardNumber: string): boolean {
-  const sanitizedCardNumber = cardNumber.replace(creditSanitizeRegex, "");
-  const isLuhnAlgo = (sanitizedCardNumber: string): boolean => {
-    // Remove any non-digit chars
-    const number = sanitizedCardNumber.replace(nonDigitRegex, "");
-
-    // Create necessary variables
-    let length = number.length;
-    let bit = 1;
-    let sum = 0;
-
-    // Calculate sum of algorithm
-    while (length) {
-      const value = +number[--length];
-      bit ^= 1;
-      sum += bit ? [0, 2, 4, 6, 8, 1, 3, 5, 7, 9][value] : value;
-    }
-
-    // Return whether its valid
-    return sum % 10 === 0;
-  };
-
-  return (
-    creditCardRegex.test(cardNumber) &&
-    // Remove any hyphens and blanks
-    sanitizedCardNumber !== "" &&
-    // Check if it matches a provider
-    creditByProviderRegexList.some((regex) => regex.test(sanitizedCardNumber!)) &&
-    // Check if passes luhn algorithm
-    isLuhnAlgo(sanitizedCardNumber)
-  );
+  if (!creditCardRegex.test(cardNumber)) return false;
+  const sanitized = cardNumber.replace(creditSanitizeRegex, "");
+  if (!creditByProviderRegexList.some((re) => re.test(sanitized))) return false;
+  return isLuhnAlgo(sanitized);
 }
 
 export class ZodString extends ZodType<string, ZodStringDef, string> {
@@ -1184,6 +1137,9 @@ export class ZodString extends ZodType<string, ZodStringDef, string> {
       ...errorUtil.errToObj(message),
     });
   }
+  creditCard(message?: errorUtil.ErrMessage) {
+    return this._addCheck({ kind: "creditCard", ...errorUtil.errToObj(message) });
+  }
 
   jwt(options?: { alg?: string; message?: string | undefined }) {
     return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
@@ -1341,13 +1297,6 @@ export class ZodString extends ZodType<string, ZodStringDef, string> {
     });
   }
 
-  creditCard(message?: errorUtil.ErrMessage) {
-    return this._addCheck({
-      kind: "creditCard",
-      ...errorUtil.errToObj(message),
-    });
-  }
-
   get isDatetime() {
     return !!this._def.checks.find((ch) => ch.kind === "datetime");
   }
@@ -1446,18 +1395,8 @@ export class ZodString extends ZodType<string, ZodStringDef, string> {
 /////////////////////////////////////////
 /////////////////////////////////////////
 export type ZodNumberCheck =
-  | {
-      kind: "min";
-      value: number;
-      inclusive: boolean;
-      message?: string | undefined;
-    }
-  | {
-      kind: "max";
-      value: number;
-      inclusive: boolean;
-      message?: string | undefined;
-    }
+  | { kind: "min"; value: number; inclusive: boolean; message?: string | undefined }
+  | { kind: "max"; value: number; inclusive: boolean; message?: string | undefined }
   | { kind: "int"; message?: string | undefined }
   | { kind: "multipleOf"; value: number; message?: string | undefined }
   | { kind: "finite"; message?: string | undefined };
@@ -1734,18 +1673,8 @@ export class ZodNumber extends ZodType<number, ZodNumberDef, number> {
 /////////////////////////////////////////
 /////////////////////////////////////////
 export type ZodBigIntCheck =
-  | {
-      kind: "min";
-      value: bigint;
-      inclusive: boolean;
-      message?: string | undefined;
-    }
-  | {
-      kind: "max";
-      value: bigint;
-      inclusive: boolean;
-      message?: string | undefined;
-    }
+  | { kind: "min"; value: bigint; inclusive: boolean; message?: string | undefined }
+  | { kind: "max"; value: bigint; inclusive: boolean; message?: string | undefined }
   | { kind: "multipleOf"; value: bigint; message?: string | undefined };
 
 export interface ZodBigIntDef extends ZodTypeDef {
