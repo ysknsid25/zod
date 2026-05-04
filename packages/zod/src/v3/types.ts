@@ -657,8 +657,9 @@ function timeRegexSource(args: { precision?: number | null }) {
     secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`;
   }
 
-  const secondsQuantifier = args.precision ? "+" : "?"; // require seconds if precision is nonzero
-  return `([01]\\d|2[0-3]):[0-5]\\d(:${secondsRegexSource})${secondsQuantifier}`;
+  // require seconds if precision is nonzero
+  const secondsPart = args.precision ? `:${secondsRegexSource}` : `(:${secondsRegexSource})?`;
+  return `([01]\\d|2[0-3]):[0-5]\\d${secondsPart}`;
 }
 
 function timeRegex(args: {

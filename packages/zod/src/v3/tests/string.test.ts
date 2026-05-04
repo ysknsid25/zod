@@ -625,6 +625,7 @@ test("datetime parsing", () => {
   expect(() => datetime3Ms.parse("1970-01-01T00:00:00.12Z")).toThrow();
   expect(() => datetime3Ms.parse("2022-10-13T09:52:31Z")).toThrow();
   expect(() => datetime3Ms.parse("2022-10-13T09:52Z")).toThrow();
+  expect(() => datetime3Ms.parse("2022-10-13T09:52:31.123:31.456Z")).toThrow();
 
   const datetimeOffset = z.string().datetime({ offset: true });
   datetimeOffset.parse("1970-01-01T00:00:00.000Z");
@@ -763,6 +764,7 @@ test("time parsing", () => {
   expect(() => time2.parse("00:00:00.000")).toThrow();
   expect(() => time2.parse("00:00:00.00+00:00")).toThrow();
   expect(() => time2.parse("23:59")).toThrow();
+  expect(() => time2.parse("10:20:30.12:31.45")).toThrow();
 
   // const time3 = z.string().time({ offset: true });
   // time3.parse("00:00:00Z");
